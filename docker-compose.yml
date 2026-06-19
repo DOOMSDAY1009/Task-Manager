@@ -1,0 +1,51 @@
+# One-command local setup: `docker compose up --build`
+# Frontend -> http://localhost:3000
+# Backend  -> http://localhost:8080
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-taskuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-taskpass}
+      POSTGRES_DB: ${POSTGRES_DB:-taskdb}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-taskuser} -d ${POSTGRES_DB:-taskdb}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-taskuser}:${POSTGRES_PASSWORD:-taskpass}@db:5432/${POSTGRES_DB:-taskdb}?sslmode=disable
+      JWT_SECRET: ${JWT_SECRET:-please-change-me-to-a-long-random-secret}
+      JWT_EXPIRY: ${JWT_EXPIRY:-24h}
+      BCRYPT_COST: ${BCRYPT_COST:-12}
+      CORS_ORIGIN: http://localhost:3000
+      PORT: "8080"
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:
