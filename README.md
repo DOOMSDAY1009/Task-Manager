@@ -189,6 +189,25 @@ The new role takes effect on the user's next login (a new token is issued).
 
 ---
 
+## Deployment
+
+Two supported paths. Both deploy the backend + Postgres on Render and the frontend on either Render or Vercel.
+
+### Option A — Render Blueprint (backend + db + frontend, one repo)
+1. Push this repo to GitHub.
+2. In Render: **New → Blueprint** and select the repo. `render.yaml` provisions the database, the Go API, and the Next.js app.
+3. After the first deploy, set the two cross-service URLs (the only `sync: false` vars):
+   - `task-manager-api` → `CORS_ORIGIN` = the deployed frontend URL
+   - `task-manager-web` → `NEXT_PUBLIC_API_URL` = the deployed API URL
+   Then redeploy the frontend so the API URL is baked into the build.
+
+### Option B — Vercel (frontend) + Render (backend + db)
+1. Deploy the backend with the Render Blueprint (or any host that runs the `backend/Dockerfile`); note the API URL.
+2. On Vercel: import the repo, set **Root Directory = `frontend`**, and add env var `NEXT_PUBLIC_API_URL` = the API URL. `frontend/vercel.json` pins the framework and commands.
+3. Set the backend's `CORS_ORIGIN` to the Vercel URL.
+
+`JWT_SECRET` is generated automatically by the Render Blueprint; set it manually (16+ chars) on any other host.
+
 ## Project structure
 
 ```

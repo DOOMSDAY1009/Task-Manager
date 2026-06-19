@@ -1,0 +1,48 @@
+# Render Blueprint — deploys Postgres + Go API + Next.js frontend in one click.
+# Usage: push to GitHub, then in Render: New > Blueprint > pick this repo.
+# After the first deploy, set the two cross-service URLs noted below.
+
+databases:
+  - name: task-manager-db
+    databaseName: taskdb
+    user: taskuser
+    plan: free
+
+services:
+  # --- Backend (Go REST API) ---
+  - type: web
+    name: task-manager-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /healthz
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: task-manager-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true # Render generates a strong secret
+      - key: JWT_EXPIRY
+        value: 24h
+      - key: BCRYPT_COST
+        value: "12"
+      - key: PORT
+        value: "8080"
+      # Set this to the deployed frontend URL after the web service exists.
+      - key: CORS_ORIGIN
+        sync: false
+
+  # --- Frontend (Next.js) ---
+  - type: web
+    name: task-manager-web
+    runtime: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    plan: free
+    envVars:
+      # NEXT_PUBLIC_* is baked in at build time; set to the API URL below.
+      # Render passes service env vars as Docker build args automatically.
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
