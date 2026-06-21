@@ -26,5 +26,8 @@ COPY --from=build --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=build --chown=nextjs:nodejs /app/.next/static ./.next/static
 USER nextjs
 EXPOSE 3000
+# Bind to all interfaces (Render/containers reach the app on 0.0.0.0, not
+# localhost) and respect the platform-provided PORT.
 ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 CMD ["node", "server.js"]
