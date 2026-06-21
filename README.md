@@ -4,6 +4,13 @@ A full-stack task management application: a **Go** REST API backed by **PostgreS
 
 > Built for the Full-Stack Developer Assessment. Covers all five required tasks plus several bonus features (dark mode, optimistic UI, role-based access, activity log, Docker one-command setup, and a CI pipeline).
 
+## Live demo
+
+- **Frontend:** https://task-manager-web-h2d7.onrender.com
+- **Backend API:** https://task-manager-api-fwp1.onrender.com (e.g. [`/healthz`](https://task-manager-api-fwp1.onrender.com/healthz))
+
+> Hosted on Render's free tier — services sleep after ~15 min of inactivity, so the **first request may take 30–50s** to wake the instance. Just give it a moment and reload.
+
 ---
 
 ## Features
